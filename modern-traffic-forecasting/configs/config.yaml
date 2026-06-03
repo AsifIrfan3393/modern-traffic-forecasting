@@ -1,0 +1,54 @@
+seed: 42
+device: auto
+
+data:
+  dataset_name: PeMSD4
+  data_path: data/traffic.npy
+  adjacency_path: null
+  edge_features_path: null
+  time_column: null
+  target_feature: 0
+  feature_columns: null
+  train_ratio: 0.7
+  val_ratio: 0.1
+  test_ratio: 0.2
+  frequency_minutes: 5
+  add_time_features: true
+  add_missing_mask: true
+  holiday_dates: []
+
+model:
+  hidden_dim: 64
+  num_heads: 4
+  num_layers: 2
+  dropout: 0.15
+  attention_dropout: 0.1
+  window_size: 12
+  prediction_horizon: 12
+  node_embedding_dim: 32
+  graph_mode: hybrid  # static | adaptive | hybrid
+  adaptive_top_k: 32
+  edge_dim: null
+  temporal_scales: [3, 6, 12]
+  max_nodes: null
+
+training:
+  optimizer: AdamW
+  scheduler: cosine
+  loss_function: huber  # huber | mae | mse
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 16
+  epochs: 50
+  patience: 10
+  gradient_clip_norm: 5.0
+  mixed_precision: true
+  warmup_epochs: 5
+  num_workers: 0
+  pin_memory: true
+
+outputs:
+  checkpoint_dir: outputs/checkpoints
+  figure_dir: outputs/figures
+  report_dir: outputs/reports
+  experiment_name: modern_stgtn
