@@ -14,6 +14,11 @@ class MetricsReport:
     mape: float
     r2: float
     explained_variance: float
+    smape: float
+    wape: float
+    mase: float
+    pearson: float
+    nse: float
 
     def to_dict(self) -> Dict[str, float]:
         return asdict(self)
