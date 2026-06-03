@@ -32,10 +32,13 @@ from utils.metrics import calculate_metrics
 from utils.seed import set_seed
 
 
+FIGURE_DPI = 120
+
+
 def save_figure(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(path, dpi=200, bbox_inches="tight")
+    fig.savefig(path, dpi=FIGURE_DPI, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -72,7 +75,7 @@ def plot_horizon_grid(
 ) -> None:
     horizon = predictions.shape[1]
     panels = horizon_indices(horizon, frequency_minutes)
-    fig, axes = plt.subplots(2, 2, figsize=(11, 7), sharex=False)
+    fig, axes = plt.subplots(2, 2, figsize=(8, 5.5), sharex=False)
     axes = axes.reshape(-1)
     panel_letters = ["(a)", "(b)", "(c)", "(d)"]
 
@@ -90,7 +93,7 @@ def plot_horizon_grid(
     for axis in axes[len(panels) :]:
         axis.axis("off")
 
-    fig.suptitle(f"{dataset_name}: Multi-horizon Forecast vs Actual", fontsize=14, fontweight="bold")
+    fig.suptitle(f"{dataset_name}: Multi-horizon Forecast vs Actual", fontsize=12, fontweight="bold")
     save_figure(fig, output_dir / "multi_horizon_prediction_grid.png")
 
 
@@ -105,7 +108,7 @@ def plot_per_horizon_metrics(targets: np.ndarray, predictions: np.ndarray, outpu
         mapes.append(report.mape)
         r2s.append(report.r2)
 
-    fig, axes = plt.subplots(2, 2, figsize=(11, 7))
+    fig, axes = plt.subplots(2, 2, figsize=(8, 5.5))
     for axis, values, title, ylabel in [
         (axes[0, 0], maes, "MAE by Forecast Horizon", "MAE"),
         (axes[0, 1], rmses, "RMSE by Forecast Horizon", "RMSE"),
@@ -126,7 +129,7 @@ def plot_error_diagnostics(targets: np.ndarray, predictions: np.ndarray, output_
     residuals = truth - pred
     limit = min(2000, truth.size)
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(5, 5))
     ax.scatter(truth[:limit], pred[:limit], s=8, alpha=0.35)
     min_val = min(float(truth[:limit].min()), float(pred[:limit].min()))
     max_val = max(float(truth[:limit].max()), float(pred[:limit].max()))
@@ -137,7 +140,7 @@ def plot_error_diagnostics(targets: np.ndarray, predictions: np.ndarray, output_
     ax.grid(True, alpha=0.25)
     save_figure(fig, output_dir / "predicted_vs_actual_scatter.png")
 
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(6, 3.5))
     ax.hist(residuals, bins=80, color="#4c78a8", alpha=0.85)
     ax.axvline(0, color="black", linewidth=1)
     ax.set_title("Residual Distribution", fontweight="bold")
@@ -145,7 +148,7 @@ def plot_error_diagnostics(targets: np.ndarray, predictions: np.ndarray, output_
     ax.set_ylabel("Count")
     save_figure(fig, output_dir / "residual_histogram.png")
 
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(7, 3.5))
     ax.plot(residuals[:limit], linewidth=0.8)
     ax.axhline(0, color="black", linewidth=1)
     ax.set_title("Residuals over Test Samples", fontweight="bold")
@@ -159,7 +162,7 @@ def plot_summary_metrics(targets: np.ndarray, predictions: np.ndarray, output_di
     report = calculate_metrics(targets, predictions).to_dict()
     Path(output_dir, "metrics_summary.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     names = ["mae", "rmse", "mape", "r2", "explained_variance"]
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(6, 3.5))
     bars = ax.bar([name.upper().replace("_", " ") for name in names], [report[name] for name in names], color="#72b7b2")
     ax.set_title("Overall Forecast Metrics", fontweight="bold")
     ax.tick_params(axis="x", rotation=20)
@@ -174,7 +177,7 @@ def plot_model_diagnostics(model: TrafficForecastingModel, output_dir: Path) -> 
         array = values
         while array.ndim > 2:
             array = array.mean(axis=0)
-        fig, ax = plt.subplots(figsize=(6, 5))
+        fig, ax = plt.subplots(figsize=(5, 4))
         sns.heatmap(array, cmap="viridis", ax=ax)
         ax.set_title(f"{name.replace('_', ' ').title()} Heatmap", fontweight="bold")
         save_figure(fig, output_dir / f"{name}_heatmap.png")
@@ -183,7 +186,7 @@ def plot_model_diagnostics(model: TrafficForecastingModel, output_dir: Path) -> 
     if embeddings.shape[0] >= 3:
         perplexity = max(2, min(30, embeddings.shape[0] // 3))
         coords = TSNE(n_components=2, perplexity=perplexity, init="random", learning_rate="auto").fit_transform(embeddings)
-        fig, ax = plt.subplots(figsize=(6, 5))
+        fig, ax = plt.subplots(figsize=(5, 4))
         ax.scatter(coords[:, 0], coords[:, 1], s=14, alpha=0.8)
         ax.set_title("Node Embedding t-SNE", fontweight="bold")
         ax.set_xlabel("t-SNE 1")
@@ -207,7 +210,7 @@ def plot_metric_comparison(reports: Dict[str, Dict[str, float]], output_dir: Pat
         return
     metrics = ["mae", "rmse", "mape", "r2", "explained_variance"]
     labels = list(reports)
-    fig, axes = plt.subplots(1, len(metrics), figsize=(4 * len(metrics), 4))
+    fig, axes = plt.subplots(1, len(metrics), figsize=(2.4 * len(metrics), 3.2))
     if len(metrics) == 1:
         axes = [axes]
     for axis, metric in zip(axes, metrics):
@@ -227,7 +230,11 @@ def main() -> None:
     parser.add_argument("--node-index", type=int, default=0, help="Node/sensor index for horizon line plots.")
     parser.add_argument("--max-points", type=int, default=300, help="Maximum test windows shown in line plots.")
     parser.add_argument("--compare-json", action="append", help="Optional LABEL=path/to/metrics.json for dataset/model comparison bars.")
+    parser.add_argument("--dpi", type=int, default=120, help="Saved figure DPI; lower values make smaller PNG files for Colab display.")
     args = parser.parse_args()
+
+    global FIGURE_DPI
+    FIGURE_DPI = args.dpi
 
     output_dir = Path(args.output_dir)
     comparison_reports = parse_comparison(args.compare_json)
