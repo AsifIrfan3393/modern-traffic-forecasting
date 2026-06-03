@@ -31,8 +31,17 @@ def main() -> None:
     model.load_state_dict(checkpoint["model"])
     trainer = TrafficTrainer(model, bundle, config, device)
     _, pred, truth = trainer.evaluate_split("test")
-    report = calculate_metrics(truth, pred).to_dict()
-    print(json.dumps(report, indent=2))
+
+import numpy as np
+
+np.save("test_pred.npy", pred)
+np.save("test_true.npy", truth)
+
+report = calculate_metrics(truth, pred).to_dict()
+
+print(json.dumps(report, indent=2))
+print("Saved test_pred.npy")
+print("Saved test_true.npy")
 
 
 if __name__ == "__main__":
