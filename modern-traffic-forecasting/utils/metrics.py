@@ -40,18 +40,34 @@ def masked_mape(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1e-5) -> fl
 
 
 def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsReport:
-    """Calculate MAE, RMSE, MAPE, R², and explained variance."""
-
     truth = _flatten(y_true)
     pred = _flatten(y_pred)
+
     mae = float(mean_absolute_error(truth, pred))
     rmse = float(np.sqrt(np.mean((truth - pred) ** 2)))
     mape = masked_mape(truth, pred)
+
     r2 = float(r2_score(truth, pred)) if truth.size > 1 else 0.0
     evs = float(explained_variance_score(truth, pred)) if truth.size > 1 else 0.0
-    return MetricsReport(mae=mae, rmse=rmse, mape=mape, r2=r2, explained_variance=evs)
-import numpy as np
-from sklearn.metrics import mean_squared_error
+
+    smape_score = smape(truth, pred)
+    wape_score = wape(truth, pred)
+    mase_score = mase(truth, pred)
+    pearson_score = pearson_corr(truth, pred)
+    nse_score = nse(truth, pred)
+
+    return MetricsReport(
+        mae=mae,
+        rmse=rmse,
+        mape=mape,
+        r2=r2,
+        explained_variance=evs,
+        smape=smape_score,
+        wape=wape_score,
+        mase=mase_score,
+        pearson=pearson_score,
+        nse=nse_score,
+    )
 
 def smape(y_true, y_pred):
     return 100 * np.mean(
