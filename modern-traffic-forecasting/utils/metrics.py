@@ -45,3 +45,31 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> MetricsReport:
     r2 = float(r2_score(truth, pred)) if truth.size > 1 else 0.0
     evs = float(explained_variance_score(truth, pred)) if truth.size > 1 else 0.0
     return MetricsReport(mae=mae, rmse=rmse, mape=mape, r2=r2, explained_variance=evs)
+import numpy as np
+from sklearn.metrics import mean_squared_error
+
+def smape(y_true, y_pred):
+    return 100 * np.mean(
+        2 * np.abs(y_pred - y_true) /
+        (np.abs(y_true) + np.abs(y_pred) + 1e-8)
+    )
+
+def wape(y_true, y_pred):
+    return 100 * np.sum(np.abs(y_true - y_pred)) / (
+        np.sum(np.abs(y_true)) + 1e-8
+    )
+
+def mase(y_true, y_pred):
+    naive_error = np.mean(np.abs(np.diff(y_true)))
+    model_error = np.mean(np.abs(y_true - y_pred))
+    return model_error / (naive_error + 1e-8)
+
+def pearson_corr(y_true, y_pred):
+    return np.corrcoef(y_true.flatten(),
+                       y_pred.flatten())[0,1]
+
+def nse(y_true, y_pred):
+    return 1 - (
+        np.sum((y_true - y_pred)**2) /
+        np.sum((y_true - np.mean(y_true))**2)
+    )
